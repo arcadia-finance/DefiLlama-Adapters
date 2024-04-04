@@ -20,10 +20,15 @@
   "license": "ISC",
   "dependencies": {
     "@defillama/sdk": "latest",
+    "@ethersproject/abi": "^5.7.0",
+    "@ethersproject/address": "^5.7.0",
+    "@ethersproject/bignumber": "^5.7.0",
+    "@ethersproject/solidity": "^5.7.0",
     "@project-serum/anchor": "^0.26.0",
     "@solana/web3.js": "^1.87.6",
     "@solendprotocol/solend-sdk": "^0.4.3",
     "@supercharge/promise-pool": "^2.1.0",
+    "@uniswap/v3-sdk": "github:uniswap/v3-sdk",
     "axios": "^1.6.5",
     "bignumber.js": "^9.0.1",
     "blakejs": "^1.2.1",
@@ -36,12 +41,15 @@
     "graphql-request": "^4.0.0",
     "hi-base32": "^0.5.1",
     "js-sha512": "^0.8.0",
+    "jsbi": "^4.3.0",
     "limiter": "2.1.0",
     "miscreant": "^0.3.2",
     "p-limit": "^3.1.0",
     "starknet": "^5.24.3",
     "tron-format-address": "^0.1.8",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "uniswap": "^0.0.1",
+    "web3": "^4.7.0"
   },
   "overrides": {
     "ansi-regex": "5.0.1",
