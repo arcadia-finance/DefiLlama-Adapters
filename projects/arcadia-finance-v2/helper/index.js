@@ -1,8 +1,7 @@
 const { sumTokens2 } = require("../../helper/unwrapLPs");
 const abi = require("./abi.json");
-const Web3 = require("web3");
 const JSBI = require("jsbi");
-const { getCreate2Address } = require("@ethersproject/address");
+const { ethers } = require("ethers");
 
 const config = {
   base: {
@@ -25,18 +24,19 @@ const MaxUint256 = JSBI.subtract(
   JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(256)),
   JSBI.BigInt(1)
 );
-
+const abiCoder = new ethers.AbiCoder();
 let tokenAmounts = {};
 
 function computeAddress(factory, token0, token1, fee) {
-  const poolkey = Web3.utils.keccak256(
-    Web3.eth.abi.encodeParameters(
-      ["address", "address", "uint24"],
-      [token0, token1, fee]
-    )
+  const poolkey = ethers.keccak256(
+    abiCoder.encode(["address", "address", "uint24"], [token0, token1, fee])
   );
-  const poolAddress = getCreate2Address(factory, poolkey, POOL_INIT_CODE_HASH);
-  return Web3.utils.toChecksumAddress(poolAddress);
+  const poolAddress = ethers.getCreate2Address(
+    factory,
+    poolkey,
+    POOL_INIT_CODE_HASH
+  );
+  return poolAddress;
 }
 
 function mulDiv(a, b, denominator) {
