@@ -410,7 +410,7 @@ function addToken({ balances, token, amount, chain, blacklistedTokens = [], whit
 }
 
 async function unwrapArcadiaAeroLPs({ balances = {}, block, chain = 'base', ownerIds, }) {
-  const lpPositionsWrapped = await unwrapArcadiaAeroLPs({ ownerIds, chain, block});
+  const lpPositionsWrapped = await unwrapArcadiaAeroLP({ ownerIds, chain, block});
   await unwrapUniswapLPs(balances, lpPositionsWrapped, block, chain = 'base');
   return balances;
 }

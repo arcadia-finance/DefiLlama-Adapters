@@ -1,4 +1,4 @@
-const { sumTokens2, unwrapUniswapLPs } = require('../helper/unwrapLPs')
+const { sumTokens2 } = require('../helper/unwrapLPs')
 
 const config = {
   base: {
