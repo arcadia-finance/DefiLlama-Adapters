@@ -36,7 +36,6 @@ async function tvl(api) {
   const ownerTokens = accounts.map((account, i) => [assetData[i].assets, account])
   const ownerIds = accounts.map((account, i) => [assetData[i][0], assetData[i][1], account])
   await api.sumTokens({ ownerTokens, blacklistedTokens: [uniNFT, slipNFT, wAeroNFT, sAeroNFT] })
-  let balances = api.getBalances()
   return sumTokens2({ api, owners: accounts, resolveUniV3: true, resolveSlipstream: true, resolveArcadiaAeroLPs: true, ownerIds: ownerIds})
 }
 
