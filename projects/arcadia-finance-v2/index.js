@@ -14,17 +14,6 @@ const config = {
   },
 }
 
-async function wrappedAeroToUnderlyingPool(ownerIds, api) {
-  // ownerTokens = [[['0x17B5826382e3a5257b829cF0546A08Bd77409270', '0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1'], '0x9C0B5E995264Bed11BEA54642Fb6c1e7Dd4855CB'], ...]
-  // ownerIds = [['0x17B5826382e3a5257b829cF0546A08Bd77409270'], ['12345'], '0x9C0B5E995264Bed11BEA54642Fb6c1e7Dd4855CB']
-  // here, I want the following logic:
-  // for every entry in ownerIds:
-  //     for every index, address in entry[0]:
-  //         if address is the wAeroNFT address:
-  //            _, _, _, _, amount, pool  = api.call({abi: abi.wrappedAeroPositionState, target: address, params: entry[1][index] })
-                // api.sum
-}
-
 async function tvl(api) {
   let { factory, pools, uniNFT, slipNFT, wAeroNFT, sAeroNFT } = config[api.chain];
   pools = Object.values(pools);
