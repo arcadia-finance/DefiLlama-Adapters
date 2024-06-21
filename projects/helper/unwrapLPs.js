@@ -409,59 +409,6 @@ function addToken({ balances, token, amount, chain, blacklistedTokens = [], whit
   sdk.util.sumSingleBalance(balances, token, amount, chain)
 }
 
-async function unwrapArcadiaAeroLPs({ balances = {}, block, chain = 'base', ownerIds, }) {
-  const lpPositionsWrapped = await unwrapArcadiaAeroLP({ ownerIds, chain, block});
-  await unwrapUniswapLPs(balances, lpPositionsWrapped, block, chain = 'base');
-  return balances;
-}
-
-async function unwrapArcadiaAeroLP({ ownerIds, chain, block }) {
-  let lpPositions = [];
-  for (const ownerId of ownerIds) {
-    const [nftAddresses, ids] = ownerId;
-    for (let i = 0; i < nftAddresses.length; i++) {
-      const nftAddress = nftAddresses[i];
-      const id = ids[i];
-      let positionState;
-      let poolAddress;
-      let positionAmount;
-      if (nftAddress === "0x17B5826382e3a5257b829cF0546A08Bd77409270") {
-        positionState = await sdk.api.abi.call({
-          abi: "function positionState(uint256 tokenId) view returns ((uint128 fee0PerLiquidity, uint128 fee1PerLiquidity, uint128 fee0, uint128 fee1, uint128 amountWrapped, address pool))",
-          target: nftAddress,
-          params: [id],
-          chain, block
-        });
-        poolAddress = positionState.output.pool;
-        positionAmount = parseInt(positionState.output.amountWrapped);
-      } else if (nftAddress === "0x9f42361B7602Df1A8Ae28Bf63E6cb1883CD44C27") {
-        positionState = await sdk.api.abi.call({
-          abi: "function positionState(uint256 tokenId) view returns ((address pool, uint128 amountStaked, uint128 lastRewardPerTokenPosition, uint128 lastRewardPosition))",
-          target: nftAddress,
-          params: [id],
-          chain, block
-        });
-        poolAddress = positionState.output.pool;
-        positionAmount = parseInt(positionState.output.amountStaked);
-      } else {
-        continue;
-      }
-        // Update the corresponding lpPosition
-        const lpPosition = lpPositions.find(pos => pos.token === poolAddress);
-        if (lpPosition) {
-          lpPosition.balance += positionAmount;
-        } else {
-          // If not found, add a new position
-          lpPositions.push({
-            token: poolAddress,
-            balance: positionAmount,
-          });
-        }
-    }
-  }
-  return lpPositions; // Return the updated lpPositions
-}
-
 /*
 tokens [
     [token, owner, isLP] - eg ["0xaaa", "0xbbb", true]

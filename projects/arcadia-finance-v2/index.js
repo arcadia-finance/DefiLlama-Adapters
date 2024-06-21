@@ -37,6 +37,10 @@ async function unwrapArcadiaAeroLP({ api, ownerIds, chain, block }) {
   let poolAddress;
   let positionAmount;
 
+  // for each asset address owned by an account
+  // check if the asset is the wrapped or staked aero asset module
+  // if so, fetch the amount of lp wrapped or staked
+  // create object with aerodrome v1 (=univ2) lp tokens
   for (const ownerId of ownerIds) {
     const [nftAddresses, ids] = ownerId;
     for (let i = 0; i < nftAddresses.length; i++) {
@@ -79,7 +83,7 @@ async function unwrapArcadiaAeroLP({ api, ownerIds, chain, block }) {
       }
     }
   }
-  return lpPositions; // Return the updated lpPositions
+  return lpPositions;
 }
 
 async function tvl(api) {
