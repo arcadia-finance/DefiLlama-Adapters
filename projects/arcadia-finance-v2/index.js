@@ -90,48 +90,57 @@ async function tvl (api) {
   // Account version 1 has a stored state of all assets, and can be fetched using generateAssetData()
   // Account version 2 has no such stored state, and must be fetched with external api calls.
   const versions = await api.multiCall({abi: 'function ACCOUNT_VERSION() view returns (uint256)', calls: accounts,});
-  const v1Accounts = accounts.filter((_, i) => versions[i] === '1');
-  const v2Accounts = accounts.filter((_, i) => versions[i] === '2');
+  const v1Accounts = accounts.filter((_, i) => versions[i] === '1' || versions[i] === '3');
+  const v2Accounts = accounts.filter((_, i) => versions[i] === '2' || versions[i] === '4');
 
   // This endpoint uses the following logic:
   // 1. Uses batches of all v2Accounts (to prevent rate limiting)
   // 2. calls Arcadia's endpoint to fetch the asset data of a V2 account
   // 3. verifies onchain that the ownership of the NFTs is indeed correct
   // 4. Return format is then transformed to be identical to the format of the V1 assetData
-  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-  const batchSize = 25;
-  for (let i = 0; i < v2Accounts.length; i += batchSize) {
-    const batch = v2Accounts.slice(i, i + batchSize);
-    await Promise.all(batch.map(async (account) => {
+  const addressesPerRequest = 5;
+  const parallelRequests = 25;
+  const accountsPerBatch = addressesPerRequest * parallelRequests;
+
+  for (let i = 0; i < v2Accounts.length; i += accountsPerBatch) {
+    const batchAccounts = v2Accounts.slice(i, i + accountsPerBatch);
+
+    // Create sub-batches of 5 addresses each
+    const requestBatches = [];
+    for (let j = 0; j < batchAccounts.length; j += addressesPerRequest) {
+      requestBatches.push(batchAccounts.slice(j, j + addressesPerRequest));
+    }
+
+    await Promise.all(requestBatches.map(async (accountGroup) => {
       try {
-        const assetDataCall = await utils.fetchURL(`https://api.arcadia.finance/v1/api/accounts/spot_asset_data?chain_id=8453&account_addresses=${account}`);
-        const assetData = assetDataCall.data[0] // call is made for multiple addresses, but may time out if all accounts are requested at once
-        if (!assetData || !assetData[0][0] || assetData[0][0].length < 1) return;
-  
-        ownerTokens.push([assetData[0][0], account])
-        if (!assetData[0][0].length || !assetData[0][1].length || assetData[0][1] == "0") return;
-        ownerIds.push([assetData[0][0], assetData[0][1], account])
-        accs.push(account)
+        const addressParams = accountGroup.map(addr => `account_addresses=${addr}`).join('&');
+        const assetDataCall = await utils.fetchURL(`https://api.arcadia.finance/v1/api/accounts/spot_asset_data?${addressParams}&chain_id=8453`);
 
-        for (let i = 0; i < assetData[0][0].length; i++) {
-          if (assetData[0][0][i] === uniV4NFT) {
-            uniV4Ids.push(assetData[0][1][i]);
+        // Process each account's data from the batched response
+        assetDataCall.data.forEach((assetData, index) => {
+          const account = accountGroup[index];
+          if (!assetData || !assetData[0][0] || assetData[0][0].length < 1) return;
+
+          ownerTokens.push([assetData[0][0], account])
+          if (!assetData[0][0].length || !assetData[0][1].length || assetData[0][1] == "0") return;
+          ownerIds.push([assetData[0][0], assetData[0][1], account])
+          accs.push(account)
+
+          for (let i = 0; i < assetData[0][0].length; i++) {
+            if (assetData[0][0][i] === uniV4NFT) {
+              uniV4Ids.push(assetData[0][1][i]);
+            }
           }
-        }
-        
+        });
       } catch (error) {
-          console.log(`Failed to fetch/process data for account ${account}:`, error);
-          return;
+        console.log(`Failed to fetch/process data for accounts ${accountGroup.join(', ')}:`, error);
+        return;
       }
     }));
 
-    api.log(`[arcadia] Processed batch ${Math.ceil((i + 1) / batchSize)} of ${Math.ceil(v2Accounts.length / batchSize)} for v2 accounts.`);
+    api.log(`[arcadia] Processed batch ${Math.ceil((i + accountsPerBatch) / accountsPerBatch)} of ${Math.ceil(v2Accounts.length / accountsPerBatch)} for v2 accounts.`);
 
-    // Add small delay between batches to prevent rate limiting
-    if (i + batchSize < v2Accounts.length) {  // Only sleep if there are more batches to process
-      await sleep(500);
-    }
   }
 
   const assetDatasV1 = await api.multiCall({ abi: abi.generateAssetData, calls: v1Accounts, permitFailure: true })
