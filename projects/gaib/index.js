@@ -51,17 +51,17 @@ const aidaContracts = {
     ],
     sty: [
         {
-            token: '0xF1815bd50389c46847f0Bda824eC8da914045D14', // USDC
+            token: ADDRESSES.flow.stgUSDC, // USDC
             poolToken: '0xd5255Cc08EBAf6D54ac9448822a18d8A3da29A42'
         }
     ],
     bsc: [
         {
-            token: '0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d', // USD1
+            token: ADDRESSES.bsc.USD1, // USD1
             poolToken: '0xd5255Cc08EBAf6D54ac9448822a18d8A3da29A42'
         },
         {
-            token: '0x55d398326f99059ff775485246999027b3197955', // USDT
+            token: ADDRESSES.bsc.USDT, // USDT
             poolToken: '0xDc45e7027A0489FE6C2E4A0735097d8E6952A340'
         }
     ]
@@ -90,37 +90,22 @@ async function aidaTvl(api) {
     return api.getBalances();
 }
 
-// AID total supply on chain
-async function aidSupply(api) {
-    const supply = await api.call({
-        abi: totalSupplyABI,
-        target: AID_TOKEN,
-    });
-    api.add(`ethereum:${AID_TOKEN}`, supply, { skipChain: true });
-    return api.getBalances();
-}
-
 module.exports = {
     methodology: 'Tracks: 1) Legacy AIDa (Alpha) pool TVL using totalAssets(), 2) AID.v0 total supply across all chains.',
     start: 1715490671,
     timetravel: true,
     misrepresentedTokens: true,
-
     ethereum: {
         tvl: aidaTvl,
-        ownTokens: aidSupply,
     },
     arbitrum: {
         tvl: aidaTvl,
-        ownTokens: aidSupply,
     },
     base: {
         tvl: aidaTvl,
-        ownTokens: aidSupply,
     },
     bsc: {
         tvl: aidaTvl,
-        ownTokens: aidSupply,
     },
     sei: {
         tvl: aidaTvl,
